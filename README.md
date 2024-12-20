@@ -10,7 +10,8 @@ This project implements a Microsoft Teams application using Java 17 and Spring B
 3. [Backend Implementation](#backend-implementation)
 4. [Frontend Implementation](#frontend-implementation)
 5. [Developing Teams Apps](#developing-teams-apps)
-6. [Best Practices](#best-practices)
+6. [Registering and Configuring the App in Azure AD](#registering-and-configuring-the-app-in-azure-ad)
+7. [Best Practices](#best-practices)
 
 ---
 
@@ -118,13 +119,35 @@ The frontend consists of static HTML, CSS, and JavaScript files served by Spring
 
 3. **Microsoft Graph API**:
    - Access Teams, channel, and user data.
-   - Send messages using the `push_message.html` interface.
+   - Send messages using the `push.html` interface.
 
-### SPA Best Practices
+---
 
-- **SPA**: Enable real-time interaction with the backend without full page reloads.
-- **Routing**: Use JavaScript frameworks (optional) to manage routing within a single-page context.
-- **State Management**: Store tokens and user state securely in memory or session storage.
+## Registering and Configuring the App in Azure AD
+
+1. **Create an App Registration**:
+   - Go to the Azure portal and navigate to "Azure Active Directory" > "App registrations".
+   - Click "New registration" and provide the app name, supported account types, and redirect URI (e.g., `https://your-app-url/auth-end.html`).
+
+2. **Configure API Permissions**:
+   - In the "API permissions" section, add the required Microsoft Graph permissions (e.g., `User.Read`, `ChannelMessage.Send`).
+   - Grant admin consent for the requested permissions.
+
+3. **Add a Client Secret**:
+   - Go to the "Certificates & secrets" section.
+   - Create a new client secret and note the value. Use this in your application properties.
+
+4. **Update Application Settings**:
+   - Configure the `application.properties` file in your Spring Boot application:
+     ```properties
+     azure.client-id=<your-client-id>
+     azure.client-secret=<your-client-secret>
+     azure.redirect-uri=https://your-app-url/auth-end.html
+     azure.tenant-id=<your-tenant-id>
+     ```
+
+5. **Test the Integration**:
+   - Ensure the app can authenticate users and access Teams data using the Microsoft Graph API.
 
 ---
 

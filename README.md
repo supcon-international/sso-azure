@@ -1,4 +1,4 @@
-# Teams App: Backend-Frontend Separation with SPA
+# Teams App: Backend-Frontend Separation
 
 This project implements a Microsoft Teams application using Java 17 and Spring Boot for the backend, coupled with a single-page application (SPA) frontend. The app features user authentication, push messaging, and displays hierarchical and channel data. This README provides an in-depth code analysis, file descriptions, and insights into the development of a Teams app with backend-frontend separation and SPA architecture.
 
@@ -92,7 +92,7 @@ The frontend consists of static HTML, CSS, and JavaScript files served by Spring
 
 1. **Single-Page Architecture**:
    - The app dynamically updates content without reloading the page.
-   - Uses AJAX requests to fetch and display data.
+   - Uses SPA requests to fetch and display data.
 
 2. **HTML Files**:
    - `index.html`: Fetches and displays user and channel data using backend APIs.
@@ -122,7 +122,7 @@ The frontend consists of static HTML, CSS, and JavaScript files served by Spring
 
 ### SPA Best Practices
 
-- **AJAX**: Enable real-time interaction with the backend without full page reloads.
+- **SPA**: Enable real-time interaction with the backend without full page reloads.
 - **Routing**: Use JavaScript frameworks (optional) to manage routing within a single-page context.
 - **State Management**: Store tokens and user state securely in memory or session storage.
 

@@ -1,0 +1,63 @@
+{
+    "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+    "version": "1.0.0",
+    "manifestVersion": "1.19",
+    "id": "8a45c8a4-bea0-43d7-aad0-f1d576149acf",
+    "name": {
+      "short": "push_message_hongzhi",
+      "full": "push message to specified channel"
+    },
+    "developer": {
+      "name": "hongzhi",
+      "mpnId": "",
+      "websiteUrl": "https://supcononenorth.fortiddns.com:44443/push.html",
+      "privacyUrl": "https://www.google.com/policies/privacy/",
+      "termsOfUseUrl": "https://www.google.com/policies/terms/"
+    },
+    "description": {
+      "short": "push message to specified channel",
+      "full": "This is a test application, purpose is to test push message to specified channel"
+    },
+    "icons": {
+      "outline": "outline.png",
+      "color": "color.png"
+    },
+    "accentColor": "#FFFFFF",
+    "staticTabs": [
+      {
+        "entityId": "77351a90-7cea-4972-9f92-85f41d85590b",
+        "name": "UserInfo",
+        "contentUrl": "https://supcononenorth.fortiddns.com:44443/push.html",
+        "websiteUrl": "https://supcononenorth.fortiddns.com:44443/push.html",
+        "scopes": [
+          "personal"
+        ],
+        "context": [
+          "personalTab"
+        ]
+      },
+      {
+        "entityId": "about",
+        "scopes": [
+          "personal"
+        ]
+      }
+    ],
+    "validDomains": [
+      "www.google.com"
+    ],
+    "webApplicationInfo": {
+      "id": "267901ae-c505-425d-a0c5-c07a7162287e",
+      "resource": "https://graph.microsoft.com"
+    },
+    "defaultGroupCapability": {
+      "team": "tab",
+      "groupchat": "tab",
+      "meetings": "tab"
+    },
+    "authorization": {
+      "permissions": {
+        "resourceSpecific": []
+      }
+    }
+  }

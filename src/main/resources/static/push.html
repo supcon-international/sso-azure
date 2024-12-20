@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Push Message</title>
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.13.0/js/MicrosoftTeams.min.js"></script>
+  <style>
+    #team-list {
+      margin-top: 20px;
+    }
+    #channel-list {
+      margin-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #message-box {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Push Message</h1>
+  <div id="output">Initializing...</div>
+  <div id="team-list">
+    <h3>Select Teams and Channels:</h3>
+    <ul id="teams"></ul>
+  </div>
+  <div id="message-box">
+    <h3>Message:</h3>
+    <textarea id="message" rows="4" cols="50" placeholder="Enter your message here"></textarea>
+    <button id="send-message">Send Message</button>
+  </div>
+
+  <script>
+    const output = (message) => {
+      const outputDiv = document.getElementById("output");
+      const p = document.createElement("p");
+      p.innerHTML = message;
+      outputDiv.appendChild(p);
+    };
+
+    microsoftTeams.initialize();
+
+    const fetchTeamsAndChannels = async (userId) => {
+      try {
+        const response = await fetch("/api/teams", {
+          headers: { "X-User-ID": userId },
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch teams: ${response.statusText}`);
+        }
+
+        const teamsData = await response.json();
+        const teamsList = document.getElementById("teams");
+        teamsList.innerHTML = "";
+
+        for (const team of teamsData) {
+          const teamItem = document.createElement("li");
+          teamItem.innerHTML = `
+            <input type="checkbox" class="team-checkbox" data-team-id="${team.id}">
+            ${team.displayName}
+            <ul id="channels-${team.id}"></ul>
+          `;
+          teamsList.appendChild(teamItem);
+
+          // Fetch channels for each team
+          const channelsResponse = await fetch(`/api/teams/${team.id}/channels`, {
+            headers: { "X-User-ID": userId },
+          });
+          if (!channelsResponse.ok) {
+            throw new Error(`Failed to fetch channels for team ${team.id}`);
+          }
+
+          const channelsData = await channelsResponse.json();
+          const channelsList = document.getElementById(`channels-${team.id}`);
+          for (const channel of channelsData) {
+            const channelItem = document.createElement("li");
+            channelItem.innerHTML = `
+              <input type="checkbox" class="channel-checkbox" data-channel-id="${channel.id}" data-team-id="${team.id}">
+              ${channel.displayName}
+            `;
+            channelsList.appendChild(channelItem);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching teams and channels:", error);
+        output(`<b>Error Fetching Teams and Channels:</b> ${error.message}`);
+      }
+    };
+
+    document.getElementById("send-message").addEventListener("click", async () => {
+        const userId = localStorage.getItem("userId");
+        const message = document.getElementById("message").value;
+        const selectedChannels = document.querySelectorAll(".channel-checkbox:checked");
+
+        if (!message) {
+            alert("Please enter a message.");
+            return;
+        }
+
+        if (selectedChannels.length === 0) {
+            alert("Please select at least one channel.");
+            return;
+        }
+
+        let allSuccess = true;
+        for (const channel of selectedChannels) {
+            const teamId = channel.getAttribute("data-team-id");
+            const channelId = channel.getAttribute("data-channel-id");
+
+            try {
+                const response = await fetch(`/api/teams/${teamId}/channels/${channelId}/messages`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-User-ID": userId,
+                    },
+                    body: JSON.stringify({ message }),
+                });
+
+                if (response.ok) {
+                    output(`<b>Message sent to channel:</b> ${channelId}`);
+                } else {
+                    const error = await response.json();
+                    output(`<b>Error sending message to channel ${channelId}:</b> ${error.message}`);
+                    allSuccess = false;
+                }
+            } catch (error) {
+                console.error("Error sending message:", error);
+                output(`<b>Error sending message to channel ${channelId}:</b> ${error.message}`);
+                allSuccess = false;
+            }
+        }
+
+        if (allSuccess) {
+            alert("Message sent successfully!");
+        } else {
+            alert("Message sending failed for some channels. Please check the logs.");
+        }
+    });
+
+
+    const clientId = "267901ae-c505-425d-a0c5-c07a7162287e";
+    const tenantId = "bcd6ac62-9dba-4c18-91da-89244d96aab5";
+    const redirectUri = window.location.origin + "/api/authenticate";
+    const authEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`;
+
+    const codeVerifier = "aBcD1234567890_-~.abcdefGHIJKLMNOPQRSTUVWXYZ";
+    localStorage.setItem("codeVerifier", codeVerifier);
+
+    const authUrl = `${authEndpoint}?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=User.Read User.Read.All Directory.Read.All Group.Read.All Channel.ReadBasic.All ChannelMessage.Send&response_mode=query&code_challenge=${codeVerifier}&code_challenge_method=plain`;
+
+    microsoftTeams.authentication.authenticate({
+      url: authUrl,
+      successCallback: (response) => {
+        const data = JSON.parse(response);
+        const userId = data.userId;
+        localStorage.setItem("userId", userId);
+        output(`<b>Authentication Successful!</b> User ID: ${userId}`);
+        fetchTeamsAndChannels(userId);
+      },
+      failureCallback: (error) => {
+        console.error("Authentication Failed:", error);
+        output(`<b>Authentication Failed:</b> ${error}`);
+      },
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teams App with OAuth</title>
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.13.0/js/MicrosoftTeams.min.js"></script>
+</head>
+<body>
+  <h1>Teams App with OAuth</h1>
+  <div id="output">Initializing...</div>
+
+  <script>
+    // Azure AD App Config
+    const clientId = "267901ae-c505-425d-a0c5-c07a7162287e";
+    const tenantId = "bcd6ac62-9dba-4c18-91da-89244d96aab5";
+    const redirectUri = window.location.origin + "/auth-end.html"; // Callback endpoint
+    const authEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`;
+    const tokenEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+    const graphApiBase = "https://graph.microsoft.com/v1.0";
+
+    // Initialize Teams SDK
+    microsoftTeams.initialize();
+
+    // Utility: Display output to the page
+    const output = (message) => {
+      const outputDiv = document.getElementById("output");
+      const p = document.createElement("p");
+      p.innerHTML = message; // Use innerHTML for better formatting
+      outputDiv.appendChild(p);
+    };
+
+    // Generate Code Verifier and Challenge
+    const codeVerifier = "aBcD1234567890_-~.abcdefGHIJKLMNOPQRSTUVWXYZ"; // For debug purpose
+    localStorage.setItem("codeVerifier", codeVerifier);
+
+    // Redirect to Azure AD for Authentication
+    const authUrl = `${authEndpoint}?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=User.Read User.Read.All Directory.Read.All Group.Read.All Channel.ReadBasic.All ChannelMessage.Send&response_mode=query&code_challenge=${codeVerifier}&code_challenge_method=plain`;
+    microsoftTeams.authentication.authenticate({
+      url: authUrl,
+      successCallback: (accessToken) => {
+        console.log("Authentication Successful:", accessToken);
+        output("<b>Authentication Successful!</b>");
+
+        // Call Microsoft Graph API
+        callGraphApi(accessToken);
+      },
+      failureCallback: (error) => {
+        console.error("Authentication Failed:", error);
+        output("<b>Authentication Failed!</b>");
+      },
+    });
+
+    // Call Microsoft Graph API with Access Token
+    function callGraphApi(accessToken) {
+      // Step 1: Get current user's information
+      fetch(`${graphApiBase}/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+        .then((response) => response.json())
+        .then((user) => {
+          output(`<b>User Info:</b><br>Name: ${user.displayName}<br>Email: ${user.mail}<br>Job Title: ${user.jobTitle}`);
+          console.log("User Info:", user);
+
+          // Step 2: Get user's manager information
+          return fetch(`${graphApiBase}/me/manager`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+        })
+        .then((response) => {
+          if (response.status === 404) {
+            // If no manager is found
+            output("<b>Supervisor:</b> No supervisor found.");
+            console.log("Supervisor: No supervisor found.");
+            return null;
+          }
+          return response.json();
+        })
+        .then((manager) => {
+          if (manager) {
+            output(`<b>Supervisor:</b><br>Name: ${manager.displayName}<br>Email: ${manager.mail}<br>Job Title: ${manager.jobTitle}`);
+            console.log("Supervisor:", manager);
+          }
+
+          // Step 3: Get user's direct reports
+          return fetch(`${graphApiBase}/me/directReports`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+        })
+        .then((response) => response.json())
+        .then((directReports) => {
+          const teamMembers = directReports.value.map((member) => `${member.displayName} (${member.jobTitle || "No Title"})`).join("<br>");
+          output(`<b>Team Members:</b><br>${teamMembers || "No direct reports found."}`);
+          console.log("Team Members:", directReports);
+
+          // Step 4: Get user's joined teams
+          return fetch(`${graphApiBase}/me/joinedTeams`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+        })
+        .then((response) => response.json())
+        .then((teams) => {
+          const joinedTeams = teams.value.map((team) => team.displayName).join("<br>");
+          output(`<b>Joined Teams:</b><br>${joinedTeams || "No teams found."}`);
+          console.log("Joined Teams:", teams);
+
+          // Step 5: Get channels for the first team (if exists)
+          if (teams.value.length > 0) {
+            const firstTeamId = teams.value[0].id;
+            return fetch(`${graphApiBase}/teams/${firstTeamId}/channels`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
+          } else {
+            return null;
+          }
+        })
+        .then((response) => (response ? response.json() : { value: [] }))
+        .then((channels) => {
+          const teamChannels = channels.value.map((channel) => channel.displayName).join("<br>");
+          output(`<b>Channels in First Team:</b><br>${teamChannels || "No channels found."}`);
+          console.log("Channels in First Team:", channels);
+        })
+        .catch((error) => {
+          output(`<b>Error Calling Microsoft Graph API:</b> ${error}`);
+          console.error("Graph API Error:", error);
+        });
+    }
+  </script>
+</body>
+</html>

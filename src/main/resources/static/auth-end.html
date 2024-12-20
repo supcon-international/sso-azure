@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth Callback</title>
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.13.0/js/MicrosoftTeams.min.js"></script>
+</head>
+<body>
+  <h1>Processing OAuth Callback...</h1>
+  <div id="debugOutput">Initializing...</div>
+
+  <script>
+    const clientId = "267901ae-c505-425d-a0c5-c07a7162287e";
+    const tenantId = "bcd6ac62-9dba-4c18-91da-89244d96aab5";
+
+    microsoftTeams.initialize();
+
+    // Utility: Display debug messages
+    const debugOutput = (message) => {
+      const outputDiv = document.getElementById("debugOutput");
+      const p = document.createElement("p");
+      p.textContent = message;
+      outputDiv.appendChild(p);
+    };
+
+    try {
+      // Retrieve authorization code from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const authCode = urlParams.get("code");
+      // const codeVerifier = localStorage.getItem("codeVerifier");
+      const codeVerifier = "aBcD1234567890_-~.abcdefGHIJKLMNOPQRSTUVWXYZ"; // For debug purpose
+
+      if (authCode) {
+        debugOutput(`Authorization Code: ${authCode}`);
+        console.log("Authorization Code:", authCode);
+
+        const tokenEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+        fetch(tokenEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            grant_type: "authorization_code",
+            client_id: clientId,
+            code: authCode,
+            redirect_uri: window.location.origin + "/auth-end.html",
+            code_verifier: codeVerifier,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.access_token) {
+              debugOutput(`Access Token: ${data.access_token}`);
+              console.log("Access Token:", data.access_token);
+              // Notify success and send access token back to index.html
+              microsoftTeams.authentication.notifySuccess(data.access_token);
+            } else {
+              debugOutput(`Error Exchanging Token: ${JSON.stringify(data)}`);
+              console.error("Token Exchange Error:", data);
+              // Notify failure with error message
+              microsoftTeams.authentication.notifyFailure("Error exchanging token: " + JSON.stringify(data));
+            }
+          })
+          .catch((error) => {
+            debugOutput(`Fetch Error: ${error.message}`);
+            console.error("Fetch Error:", error);
+            // Notify failure with error message
+            microsoftTeams.authentication.notifyFailure(error.message);
+          });
+      } else {
+        debugOutput("Authorization code not found in URL.");
+        console.error("Authorization code not found.");
+        microsoftTeams.authentication.notifyFailure("Authorization code not found.");
+      }
+    } catch (error) {
+      debugOutput(`Unexpected Error: ${error.message}`);
+      console.error("Unexpected Error:", error);
+      microsoftTeams.authentication.notifyFailure(error.message);
+    }
+  </script>
+</body>
+</html>

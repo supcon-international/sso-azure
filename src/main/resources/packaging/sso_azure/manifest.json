@@ -1,0 +1,63 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+  "version": "1.0.5",
+  "manifestVersion": "1.19",
+  "id": "b23132f8-b3ca-43e8-b410-2e3077b88f7d",
+  "name": {
+    "short": "sso_azure",
+    "full": "sso login to azure AD"
+  },
+  "developer": {
+    "name": "hongzhi",
+    "mpnId": "",
+    "websiteUrl": "https://supcononenorth.fortiddns.com:44443/index.html",
+    "privacyUrl": "https://www.google.com/policies/privacy/",
+    "termsOfUseUrl": "https://www.google.com/policies/terms/"
+  },
+  "description": {
+    "short": "test application for testing teams app",
+    "full": "This is a test application, purpose is to test teams application from develop to package and release. I try to work hard to make it work and solve any issue meet"
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#FFFFFF",
+  "staticTabs": [
+    {
+      "entityId": "77351a90-7cea-4972-9f92-85f41d85590b",
+      "name": "UserInfo",
+      "contentUrl": "https://supcononenorth.fortiddns.com:44443/index.html",
+      "websiteUrl": "https://supcononenorth.fortiddns.com:44443/index.html",
+      "scopes": [
+        "personal"
+      ],
+      "context": [
+        "personalTab"
+      ]
+    },
+    {
+      "entityId": "about",
+      "scopes": [
+        "personal"
+      ]
+    }
+  ],
+  "validDomains": [
+    "www.google.com"
+  ],
+  "webApplicationInfo": {
+    "id": "267901ae-c505-425d-a0c5-c07a7162287e",
+    "resource": "https://graph.microsoft.com"
+  },
+  "defaultGroupCapability": {
+    "team": "tab",
+    "groupchat": "tab",
+    "meetings": "tab"
+  },
+  "authorization": {
+    "permissions": {
+      "resourceSpecific": []
+    }
+  }
+}

@@ -170,7 +170,4 @@ The frontend consists of static HTML, CSS, and JavaScript files served by Spring
 
 ---
 
-## Conclusion
-
-This Teams app demonstrates how to integrate modern web development techniques with Microsoft Teams, leveraging a backend-frontend separation and SPA architecture for scalability, maintainability, and an intuitive user experience.
 
